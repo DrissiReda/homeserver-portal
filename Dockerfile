@@ -1,22 +1,33 @@
-FROM node:20-alpine AS frontend
+# Build frontend
+FROM node:20-alpine AS frontend-builder
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json* ./
-RUN npm install
+RUN npm install --production=false
 COPY frontend/ ./
 RUN npm run build
 
-FROM golang:1.21-alpine AS backend
+# Build backend binary with embedded static files
+FROM golang:1.21-alpine AS backend-builder
 WORKDIR /app
 COPY backend/go.mod backend/go.sum ./
 RUN go mod download
 COPY backend/main.go ./
-RUN go build -o dashboard main.go
+# Copy frontend dist files into static directory for embedding
+COPY --from=frontend-builder /app/frontend/dist ./static/
+# Build with CGO disabled for minimal scratch compatibility
+RUN CGO_ENABLED=0 GOOS=linux go build -o portal main.go
 
-FROM nginx:alpine
-COPY --from=frontend /app/frontend/dist /usr/share/nginx/html
-COPY --from=backend /app/dashboard /usr/local/bin/
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY backend/config.yaml /etc/dashboard/config.yaml
+# Final minimal image
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates tzdata
+WORKDIR /app
+COPY --from=backend-builder /app/portal ./
+# Optional: copy config for demo mode
+COPY backend/config.yaml ./
 
-EXPOSE 80
-CMD ["/bin/sh", "-c", "/usr/local/bin/dashboard & nginx -g 'daemon off;'"]
+EXPOSE 8080
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget -q -O- http://localhost:8080/health || exit 1
+
+RUN apk add curl --no-cache
+CMD ["./portal"]

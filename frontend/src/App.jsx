@@ -1,4 +1,3 @@
-// frontend/src/App.jsx
 
 import { useState, useEffect } from 'react'
 
@@ -7,6 +6,12 @@ function App() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    fetchApps()
+    const interval = setInterval(fetchApps, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const fetchApps = () => {
     fetch('/api/apps')
       .then(res => res.json())
       .then(data => {
@@ -17,7 +22,7 @@ function App() {
         console.error(err)
         setLoading(false)
       })
-  }, [])
+  }
 
   if (loading) {
     return (
@@ -30,7 +35,7 @@ function App() {
   return (
     <div className="container">
       <header>
-        <h1>Redval</h1>
+        <h1>Redval Server</h1>
         <p className="subtitle">Quick access to your applications</p>
       </header>
       <div className="grid">
@@ -41,7 +46,7 @@ function App() {
             </div>
             <div className="card-content">
               <h3>{app.title}</h3>
-              <p className="description">This is a good application</p>
+              <p className="description">{app.description || 'This is a good application'}</p>
             </div>
           </a>
         ))}

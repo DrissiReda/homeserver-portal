@@ -1,0 +1,89 @@
+replicaCount: 1
+
+image:
+  repository: registry.redval.ovh/server/portal
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podSecurityContext: {}
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # Increase buffer sizes to handle large headers from oauth2-proxy
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
+    nginx.ingress.kubernetes.io/large-client-header-buffers: "4 16k"
+  hosts:
+    - host: dashboard.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: dashboard-tls
+      hosts:
+        - dashboard.example.com
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+autoscaling:
+  enabled: false
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+logLevel: INFO
+
+oauth2Proxy:
+  enabled: true
+  image:
+    repository: quay.io/oauth2-proxy/oauth2-proxy
+    tag: v7.13.0
+  
+  config:
+    clientID: ""
+    clientSecret: ""
+    cookieSecret: ""
+    oidcIssuerUrl: "https://keycloak.example.com/realms/master"
+    redirectUrl: "https://dashboard.example.com/oauth2/callback"
+    emailDomains:
+      - "*"
+    
+    upstreams:
+      - "http://127.0.0.1:80"
+    
+    extraArgs:
+      provider: "oidc"
+      scope: "openid profile email groups"
+  
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi

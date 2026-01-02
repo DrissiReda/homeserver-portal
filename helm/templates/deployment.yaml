@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "k8s-dashboard.fullname" . }}
+  labels:
+    {{- include "k8s-dashboard.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "k8s-dashboard.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "k8s-dashboard.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "k8s-dashboard.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      {{- if .Values.oauth2Proxy.enabled }}
+      - name: oauth2-proxy
+        image: "{{ .Values.oauth2Proxy.image.repository }}:{{ .Values.oauth2Proxy.image.tag }}"
+        args:
+          - --http-address=:4180
+          - --provider={{ .Values.oauth2Proxy.config.extraArgs.provider }}
+          - --oidc-issuer-url={{ .Values.oauth2Proxy.config.oidcIssuerUrl }}
+          - --redirect-url={{ .Values.oauth2Proxy.config.redirectUrl }}
+          - --upstream=http://127.0.0.1:8080
+          - --email-domain={{ index .Values.oauth2Proxy.config.emailDomains 0 }}
+          - --scope={{ .Values.oauth2Proxy.config.extraArgs.scope }}
+          - --set-xauthrequest=true
+          - --pass-access-token=true
+          - --pass-authorization-header=true
+          - --set-authorization-header=true
+          - --skip-provider-button=true
+          - --cookie-secure=false
+          - --cookie-name=_oauth2_proxy_portal
+          - --cookie-httponly=true
+          - --cookie-samesite=lax
+          - --cookie-path=/
+          - --cookie-csrf-per-request=true
+          - --cookie-csrf-expire=5m
+          - --cookie-domain={{ (index .Values.ingress.hosts 0).host }}
+          - --whitelist-domain={{ (index .Values.ingress.hosts 0).host }}
+          - --reverse-proxy=true
+          - --real-client-ip-header=X-Forwarded-For
+        env:
+          - name: OAUTH2_PROXY_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "k8s-dashboard.fullname" . }}-oauth2
+                key: client-id
+          - name: OAUTH2_PROXY_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "k8s-dashboard.fullname" . }}-oauth2
+                key: client-secret
+          - name: OAUTH2_PROXY_COOKIE_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "k8s-dashboard.fullname" . }}-oauth2
+                key: cookie-secret
+        ports:
+          - name: oauth2
+            containerPort: 4180
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: oauth2
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: oauth2
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          {{- toYaml .Values.oauth2Proxy.resources | nindent 10 }}
+      {{- end }}
+      - name: portal
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+          - name: LOG_LEVEL
+            value: {{ .Values.logLevel | quote }}
+          - name: DEMO_MODE
+            value: {{ .Values.demoMode | default "false" | quote }}
+          - name: PORT
+            value: "8080"
+        ports:
+          - name: http
+            containerPort: 8080
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 3
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

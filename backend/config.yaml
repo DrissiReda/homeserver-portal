@@ -1,16 +1,21 @@
+groups: users
+
 ingresses:
 - annotations:
     dashboard.home/enabled: "true"
     dashboard.home/title: "Grafana"
+    dashboard.home/description: "Metrics and monitoring dashboards"
     dashboard.home/icon: "https://grafana.com/static/assets/img/fav32.png"
-    dashboard.home/groups: "admin,monitoring"
+    dashboard.home/groups: "admin"
 - annotations:
     dashboard.home/enabled: "true"
     dashboard.home/title: "Prometheus"
-    dashboard.home/icon: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbDpzcGFjZT0icHJlc2VydmUiIHdpZHRoPSIxMTMuMzMzIiBoZWlnaHQ9IjExMy4zMzEiPjxwYXRoIGQ9Ik01Ni42NjcgMEMyNS4zNzIgMCAwIDI1LjM2OSAwIDU2LjY2NWMwIDMxLjI5NSAyNS4zNzIgNTYuNjY2IDU2LjY2NyA1Ni42NjZzNTYuNjY2LTI1LjM3MSA1Ni42NjYtNTYuNjY2QzExMy4zMzMgMjUuMzY5IDg3Ljk2MSAwIDU2LjY2NyAwWm0wIDEwNi4wNTVjLTguOTA0IDAtMTYuMTIzLTUuOTQ4LTE2LjEyMy0xMy4yODNINzIuNzljMCA3LjMzNC03LjIxOSAxMy4yODMtMTYuMTIzIDEzLjI4M3ptMjYuNjMtMTcuNjgySDMwLjAzNHYtOS42NThoNTMuMjY0djkuNjU4em0tLjE5MS0xNC42MjloLTUyLjkyYy0uMTc2LS4yMDMtLjM1Ni0uNDAzLS41MjYtLjYwOS01LjQ1Mi02LjYyLTYuNzM2LTEwLjA3Ni03Ljk4My0xMy41OTgtLjAyMS0uMTE2IDYuNjExIDEuMzU1IDExLjMxNCAyLjQxMyAwIDAgMi40Mi41NiA1Ljk1OCAxLjIwNS0zLjM5Ny0zLjk4Mi01LjQxNC05LjA0NC01LjQxNC0xNC4yMTggMC0xMS4zNTkgOC43MTItMjEuMjg1IDUuNTY5LTI5LjMwOCAzLjA1OS4yNDkgNi4zMzEgNi40NTYgNi41NTIgMTYuMTYxIDMuMjUyLTQuNDk0IDQuNjEzLTEyLjcwMSA0LjYxMy0xNy43MzMgMC01LjIxIDMuNDMzLTExLjI2MiA2Ljg2Ny0xMS40NjktMy4wNjEgNS4wNDUuNzkzIDkuMzcgNC4yMTkgMjAuMDk5IDEuMjg1IDQuMDMgMS4xMjEgMTAuODEyIDIuMTEzIDE1LjExMy4zMjktOC45MzMgMS44NjUtMjEuOTY3IDcuNTMyLTI2LjQ2Ny0yLjUgNS42NjcuMzcgMTIuNzU4IDIuMzMzIDE2LjE2N0M3Ni41IDM3IDc4LjQyIDQxLjE2NyA3OC40MiA0OS4wNDhjMCA1LjI4NC0xLjk1MSAxMC4yNTktNS4yNDIgMTQuMTQ4IDMuNzQyLS43MDIgNi4zMjYtMS4zMzUgNi4zMjYtMS4zMzVsMTIuMTUyLTIuMzcxYy4wMDEtLjAwMS0xLjc2NSA3LjI2MS04LjU1IDE0LjI1NHoiIHN0eWxlPSJmaWxsOiNlNjUyMmM7ZmlsbC1vcGFjaXR5OjEiLz48L3N2Zz4="
+    dashboard.home/description: "Time series database and monitoring"
+    dashboard.home/icon: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
     dashboard.home/groups: "admin"
 - annotations:
     dashboard.home/enabled: "true"
     dashboard.home/title: "ArgoCD"
+    dashboard.home/description: "GitOps continuous delivery tool"
     dashboard.home/icon: "https://argo-cd.readthedocs.io/en/stable/assets/favicon.png"
     dashboard.home/groups: "admin,users"

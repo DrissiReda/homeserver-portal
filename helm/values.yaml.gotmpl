@@ -1,0 +1,48 @@
+
+image:
+  tag: "0.0.8"
+fullnameOverride: "portal"
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # Increase buffer sizes to handle large headers from oauth2-proxy
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
+    nginx.ingress.kubernetes.io/large-client-header-buffers: "4 16k"
+  hosts:
+    - host: portal.redval.ovh
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: portal-tls
+      hosts:
+        - portal.redval.ovh
+
+resources: {}
+logLevel: INFO
+
+oauth2Proxy:
+  enabled: true
+  config:
+    clientID: "portal"
+    clientSecret: "eAAbObYcUePtwc7xGypWVtYL0nMMcx0u"
+    cookieSecret: "q5kzZ6sXGz7yJ4L0m6nY3p8YF8Xx5C0x6fYpJ3HkY1M="
+    oidcIssuerUrl: "https://auth.redval.ovh/realms/redval"
+    redirectUrl: "https://portal.redval.ovh/oauth2/callback"
+    emailDomains:
+      - "*"
+    upstreams:
+      - "http://127.0.0.1:8080"
+    extraArgs:
+      provider: "oidc"
+      scope: "openid profile email groups"
+  
+  resources: {}
